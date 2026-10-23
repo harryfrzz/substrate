@@ -42,6 +42,13 @@
         "zod": "^4.6.7",
       },
     },
+    "apps/macd": {
+      "name": "@substrate/macd",
+      "dependencies": {
+        "@substrate/protocol": "workspace:*",
+        "zod": "^4.6.7",
+      },
+    },
     "apps/web": {
       "name": "@substrate/web",
       "dependencies": {
@@ -204,6 +211,8 @@
     "@substrate/hostd": ["@substrate/hostd@workspace:apps/hostd"],
 
     "@substrate/infra": ["@substrate/infra@workspace:infra"],
+
+    "@substrate/macd": ["@substrate/macd@workspace:apps/macd"],
 
     "@substrate/protocol": ["@substrate/protocol@workspace:packages/protocol"],
 

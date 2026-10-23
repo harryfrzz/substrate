@@ -84,6 +84,10 @@ fi
 if preview_origin=$(aws ssm get-parameter --region "$AWS_REGION" --name /substrate/preview-origin --query Parameter.Value --output text 2>/dev/null); then
   (umask 077 && printf 'SUBSTRATE_PREVIEW_ORIGIN=%s\n' "$preview_origin" >>"$secrets")
 fi
+# macOS workspaces (M10): the URL new Macs' agents dial in on.
+if public_url=$(param /substrate/public-url); then
+  (umask 077 && printf 'SUBSTRATE_PUBLIC_URL=%s\n' "$public_url" >>"$secrets")
+fi
 
 systemctl restart substrate-control
 for _ in $(seq 1 30); do

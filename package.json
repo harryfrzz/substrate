@@ -11,7 +11,7 @@
     "dev": "bun scripts/dev.ts",
     "typecheck": "bun run --filter '*' typecheck && tsc -p scripts",
     "test": "bun test",
-    "deploy:infra": "cd infra && bunx cdk deploy",
+    "deploy:infra": "cd infra && bunx cdk deploy --all",
     "deploy:control": "bun scripts/deploy-control.ts",
     "deploy:host": "bun scripts/deploy-host.ts",
     "images:build": "bun scripts/build-images.ts",

@@ -250,6 +250,9 @@ dedicated host.
 Done when: I can allocate a Mac from the UI after a cost warning, open its desktop
 in the browser, run an agent, and release it.
 
+See `docs/m10.md`. Built: macOS VMs (two to a Mac, with tart), the cost warning,
+terminals, and releasing an empty Mac after its 24 hours. Next: the desktop.
+
 ---
 
 # Phase 2: Private beta

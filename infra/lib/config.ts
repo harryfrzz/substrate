@@ -29,6 +29,19 @@ export const config = {
     dataSnapshots: { time: '21:30', keep: 7 },
   },
 
+  // macOS workspaces (M10): VMs on EC2 Mac hosts, which ap-south-1 only offers
+  // with Intel. Singapore has Apple Silicon, which macOS VMs need. The control
+  // box allocates hosts there on demand; this stack only provides the network.
+  mac: {
+    stackName: 'SubstrateMac',
+    region: 'ap-southeast-1',
+    vpcCidr: '10.41.0.0/16',
+    // Where mac2.metal is offered. A host can only be allocated in one AZ, so
+    // having two gives a second chance when one is out of capacity.
+    availabilityZones: ['ap-southeast-1a', 'ap-southeast-1b'],
+    instanceProfile: 'substrate-mac',
+  },
+
   // AWS-managed list of CloudFront's origin-facing addresses in ap-south-1.
   cloudFrontPrefixList: 'pl-9aa247f3',
 } as const

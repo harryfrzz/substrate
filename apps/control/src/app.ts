@@ -3,6 +3,7 @@ import { Hono } from 'hono'
 import { serveStatic } from 'hono/bun'
 import { vmRoutes, type VmRoutesOptions } from './vms.ts'
 import type { previewRoutes } from './previews.ts'
+import type { macRoutes } from './macs/routes.ts'
 
 type Options = {
   version: string
@@ -14,9 +15,11 @@ type Options = {
   // VM routes, or why there aren't any (no sandbox host, or no sign-in).
   vms: VmRoutesOptions | { unavailable: string }
   previews?: ReturnType<typeof previewRoutes>
+  // macOS workspaces (M10), when they're set up.
+  macs?: ReturnType<typeof macRoutes>
 }
 
-export function createApp({ version, region, webDir, readHost, clerkPublishableKey, vms, previews }: Options) {
+export function createApp({ version, region, webDir, readHost, clerkPublishableKey, vms, previews, macs }: Options) {
   const startedAt = new Date().toISOString()
   const app = new Hono()
 
@@ -45,6 +48,9 @@ export function createApp({ version, region, webDir, readHost, clerkPublishableK
   } else {
     app.route('/api', vmRoutes(vms))
   }
+
+  if (macs) app.route('/api', macs)
+  else app.on(['GET', 'POST', 'DELETE'], ['/api/macs', '/api/macs/*'], (c) => c.json({ error: "macOS workspaces aren't set up on this server" }, 503))
 
   app.all('/api/*', (c) => c.json({ error: 'not found' }, 404))
 

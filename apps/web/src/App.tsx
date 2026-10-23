@@ -1,6 +1,7 @@
 import type { HostStatus, InstanceState, Status } from '@substrate/protocol'
 import type { ReactNode } from 'react'
 import { useStatus } from './useStatus.ts'
+import { MacPanel } from './workspaces/MacPanel.tsx'
 import { WorkspacePanel } from './workspaces/WorkspacePanel.tsx'
 
 const stateStyle: Record<InstanceState, { dot: string; label: string }> = {
@@ -31,6 +32,7 @@ export function App({ account }: { account?: ReactNode }) {
       </header>
 
       <WorkspacePanel />
+      <MacPanel />
 
       {state.kind === 'error' && (
         <p

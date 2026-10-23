@@ -168,6 +168,48 @@ export class SubstrateStack extends Stack {
     controlRole.addToPolicy(
       new iam.PolicyStatement({ actions: ['ec2:DescribeInstances'], resources: ['*'] }),
     )
+    // macOS workspaces (M10). Each Mac host's instance gets this role: admin
+    // access over SSM, and its agent from the artifacts bucket. IAM is global,
+    // so it lives here although the Macs run in config.mac.region.
+    const macRole = new iam.Role(this, 'MacRole', {
+      assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
+      managedPolicies: [ssmCore],
+    })
+    artifacts.grantRead(macRole, 'mac/*')
+    new iam.InstanceProfile(this, 'MacInstanceProfile', { role: macRole, instanceProfileName: config.mac.instanceProfile })
+    // The control box allocates Mac hosts on demand and releases idle ones, in
+    // the Mac region only. It may end only the instances and hosts it tagged.
+    const inMacRegion = { StringEquals: { 'aws:RequestedRegion': config.mac.region } }
+    controlRole.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ['ec2:DescribeHosts', 'ec2:DescribeSubnets', 'ec2:DescribeSecurityGroups', 'ec2:DescribeImages', 'ec2:AllocateHosts', 'ec2:RunInstances'],
+        resources: ['*'],
+        conditions: inMacRegion,
+      }),
+    )
+    controlRole.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ['ec2:CreateTags'],
+        resources: ['*'],
+        conditions: { ...inMacRegion, StringEquals: { ...inMacRegion.StringEquals, 'ec2:CreateAction': ['AllocateHosts', 'RunInstances'] } },
+      }),
+    )
+    controlRole.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ['ec2:TerminateInstances', 'ec2:ReleaseHosts'],
+        resources: ['*'],
+        conditions: { StringEquals: { 'aws:RequestedRegion': config.mac.region }, StringLike: { 'ec2:ResourceTag/substrate:mac': '*' } },
+      }),
+    )
+    controlRole.addToPolicy(new iam.PolicyStatement({ actions: ['iam:PassRole'], resources: [macRole.roleArn] }))
+    // The latest macOS image, from AWS's public parameters.
+    controlRole.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ['ssm:GetParameter'],
+        resources: [`arn:${this.partition}:ssm:${config.mac.region}::parameter/aws/service/ec2-macos/*`],
+      }),
+    )
+
     // For M5, where the control box stops the host when every VM is idle.
     controlRole.addToPolicy(
       new iam.PolicyStatement({
@@ -243,6 +285,8 @@ export class SubstrateStack extends Stack {
     })
 
     new CfnOutput(this, 'Url', { value: `https://${web.distributionDomainName}` })
+    // Where Macs' agents dial in (M10).
+    new ssm.StringParameter(this, 'PublicUrl', { parameterName: '/substrate/public-url', stringValue: `https://${web.distributionDomainName}` })
     const previews = new cloudfront.Distribution(this, 'Previews', {
       comment: 'Substrate workspace previews',
       priceClass: cloudfront.PriceClass.PRICE_CLASS_200,

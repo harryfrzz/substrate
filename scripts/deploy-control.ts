@@ -21,6 +21,12 @@ await $`bun build --compile --minify --target=bun-linux-arm64 --define ${`BUILD_
   .cwd(join(root, 'apps/control'))
   .quiet()
 await Bun.write(join(bundle, 'VERSION'), `${version}\n`)
+// macd, for new Macs (M10); they fetch it at first boot, so it ships with the
+// control box that speaks its protocol.
+const macd = join(root, 'dist/substrate-macd')
+await $`bun build --compile --minify --target=bun-darwin-arm64 --define ${`BUILD_VERSION=${JSON.stringify(version)}`} src/index.ts --outfile ${macd}`
+  .cwd(join(root, 'apps/macd'))
+  .quiet()
 const tarball = join(root, 'dist/control.tar.gz')
 // macOS tar would otherwise add Apple xattrs that GNU tar warns about on the box.
 await $`tar --no-xattrs -czf ${tarball} -C ${bundle} .`.env({ ...process.env, COPYFILE_DISABLE: '1' })
@@ -65,4 +71,8 @@ for (;;) {
   }
   await Bun.sleep(10_000)
 }
+// Only once the control box is live, so new Macs never get a macd newer
+// than the control box they dial.
+await upload(out.ArtifactsBucket, 'mac/substrate-macd', await Bun.file(macd).bytes())
+await upload(out.ArtifactsBucket, 'mac/setup-mac.sh', await Bun.file(join(root, 'images/mac/setup-mac.sh')).text())
 console.log(`live: ${out.Url}`)

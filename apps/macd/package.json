@@ -1,0 +1,13 @@
+{
+  "name": "@substrate/macd",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "bun build --compile --minify --target=bun-darwin-arm64 src/index.ts --outfile dist/substrate-macd",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@substrate/protocol": "workspace:*",
+    "zod": "^4.6.7"
+  }
+}

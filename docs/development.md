@@ -52,6 +52,7 @@ bun test
 | `apps/control` | Control API (Bun + Hono). Runs on the control box, serves the web app |
 | `apps/hostd` | Host daemon (Bun + Hono). Runs on the sandbox host: VM disks, networking, Firecracker |
 | `apps/guestd` | Guest agent. Baked into the VM image, answers hostd inside each VM |
+| `apps/macd` | Mac agent (M10). Runs on each EC2 Mac, keeps its macOS VMs with tart, dials the control box |
 | `packages/protocol` | zod schemas shared by everything |
 | `infra` | AWS CDK stack (`Substrate`, ap-south-1) |
 | `images/host` | Sandbox host setup and hostd install scripts (Ubuntu 24.04) |
@@ -79,7 +80,7 @@ Keep the key private: never commit it, paste it into chats, or share it.
 | Command | What it does |
 |---|---|
 | `bun run secrets` | Creates the hostd token in Parameter Store if it's missing. With `--clerk`, also loads the Clerk keys (run `bunx clerk@latest auth login` first; owner only). With `--ntfy`, creates the topic for alerts and prints it, so you can subscribe in the ntfy app |
-| `bun run deploy:infra` | Deploys the CDK stack (`--require-approval never` skips the prompt) |
+| `bun run deploy:infra` | Deploys the CDK stacks, `Substrate` and the Mac network `SubstrateMac` (`--require-approval never` skips the prompt) |
 | `bun run deploy:control` | Builds the web app and control API, installs them on the control box, waits for the public URL to serve the new version |
 | `bun run deploy:host` | Ships hostd, the guest agent and the image scripts to the host as source, runs host setup, builds and restarts hostd. Running VMs keep running |
 | `bun run images:build` | Builds the guest kernel and a new VM image on the host (10–20 min). New VMs get it |

@@ -1,8 +1,8 @@
-import { Session, Vm, RunCheckpoint, type ResizeVm, type ForkVm, type CreateSession, type CreateVm, type UpdateVm } from '@substrate/protocol'
+import { MacWorkspace, Session, Vm, RunCheckpoint, type CreateMacWorkspace, type ResizeVm, type ForkVm, type CreateSession, type CreateVm, type UpdateVm } from '@substrate/protocol'
 import { authHeaders } from '../auth.ts'
 
 export class WorkspaceApiError extends Error {
-  constructor(readonly status: number, message: string) {
+  constructor(readonly status: number, message: string, readonly body: unknown = null) {
     super(message)
   }
 }
@@ -12,7 +12,7 @@ async function request(path: string, init?: RequestInit): Promise<unknown> {
   if (!response.ok) {
     const body = await response.json().catch(() => null)
     const message = body && typeof body.error === 'string' ? body.error : `Request failed (${response.status})`
-    throw new WorkspaceApiError(response.status, message)
+    throw new WorkspaceApiError(response.status, message, body)
   }
   return response.status === 204 ? null : response.json()
 }
@@ -82,5 +82,27 @@ export const workspaceApi = {
     url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:'
     url.searchParams.set('ticket', ticket)
     return url.href
+  },
+}
+
+// macOS workspaces (M10). Creating one that needs a new Mac fails with a 409
+// whose body is NewMacNeeded, until it's retried with confirmNewMac.
+const macPath = (id: string) => `/api/macs/${encodeURIComponent(id)}`
+export const macApi = {
+  async list(signal?: AbortSignal) {
+    return MacWorkspace.array().parse(await request('/api/macs', { signal }))
+  },
+  async create(input: CreateMacWorkspace) {
+    return MacWorkspace.parse(await request('/api/macs', post(input)))
+  },
+  async remove(id: string) { await request(macPath(id), { method: 'DELETE' }) },
+  async sessions(id: string, signal?: AbortSignal) {
+    return Session.array().parse(await request(`${macPath(id)}/sessions`, { signal }))
+  },
+  async createSession(id: string) {
+    return Session.parse(await request(`${macPath(id)}/sessions`, post({})))
+  },
+  terminalPath(id: string, sessionId: string) {
+    return `${macPath(id)}/sessions/${encodeURIComponent(sessionId)}/terminal`
   },
 }
