@@ -105,6 +105,7 @@ Next steps include reusable **use-case templates** for environments such as Next
 ## Documentation
 
 - [Development and AWS setup](docs/development.md)
+- [Control API configuration](docs/configuration.md)
 - [Task inbox and fork-and-compare workflows](docs/agent-workflows.md)
 - [VM lifecycle and workflow acceptance](docs/deployments/2026-10-24-agent-workflows.md)
 - [Product plan and milestones](docs/plan.md)

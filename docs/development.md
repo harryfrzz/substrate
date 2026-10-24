@@ -37,6 +37,9 @@ sign in as on the real site, and each account sees only its own VMs; without
 them, or with `--no-login`, it runs without sign-in and sees only the VMs it
 created that way.
 
+The control API reads its settings, such as quotas and sign-in, from environment
+variables. [configuration.md](configuration.md) lists them all.
+
 Before pushing:
 
 ```sh
